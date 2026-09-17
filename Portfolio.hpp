@@ -1,9 +1,9 @@
 #ifndef PORTFOLIO_HPP
 #define PORTFOLIO_HPP
 
-#include "matrix.hpp"
+#include "Matrix.hpp"
 #include <vector>
-#include <numeric> // std::accumulate
+#include <numeric>
 #include <cmath>
 #include <stdexcept>
 using namespace std;
@@ -41,7 +41,7 @@ public:
     }
 
     // Portfolio variance = w^T * cov * w
-    double portfolio_variance(const std::vector<double>& weights) const 
+    double portfolio_variance(const vector<double>& weights) const 
     {
         if (weights.size() != num_assets)
             throw invalid_argument("Weight vector size mismatch.");

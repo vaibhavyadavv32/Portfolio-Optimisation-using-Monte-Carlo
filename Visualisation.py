@@ -2,14 +2,11 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 
-# Load Monte Carlo results
 df = pd.read_csv("MonteCarloResults.csv")
 
-# Find max Sharpe point
 max_idx = df['Sharpe'].idxmax()
 best_row = df.loc[max_idx]
 
-# Create interactive scatter plot
 fig = px.scatter(
     df, x="Risk", y="Return", color="Sharpe",
     color_continuous_scale="Viridis", opacity=0.6,
@@ -18,7 +15,6 @@ fig = px.scatter(
     hover_data={"Sharpe": True, "Risk": True, "Return": True}
 )
 
-# Highlight Max Sharpe Portfolio
 fig.add_trace(go.Scatter(
     x=[best_row["Risk"]],
     y=[best_row["Return"]],
@@ -38,6 +34,4 @@ fig.update_layout(
 
 # Show plot
 fig.show()
-
-# Optional: Save HTML interactive file
 fig.write_html("Visualisation.html")

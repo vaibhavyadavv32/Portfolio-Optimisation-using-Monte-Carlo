@@ -5,7 +5,6 @@
 #include <stdexcept>
 #include <iostream>
 #include <iomanip>
-#include <cmath>
 using namespace std;
 
 class Matrix 

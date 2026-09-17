@@ -4,7 +4,6 @@
 #include <vector>
 #include <random>
 #include <numeric>
-#include <algorithm>
 #include <stdexcept>
 #include <cmath>
 #include "Matrix.hpp"

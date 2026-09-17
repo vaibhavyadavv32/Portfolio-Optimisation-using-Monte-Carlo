@@ -1,20 +1,19 @@
-#include "matrix.hpp"
-#include "utils.hpp"
-#include "portfolio.hpp"
+#include "Matrix.hpp"
+#include "Portfolio.hpp"
+#include "Utils.hpp"
 #include <fstream>
 #include <sstream>
 #include <string>
 #include <cmath>
 #include <iostream>
-#include <iomanip> // for std::setprecision
-#include <vector>  // for std::vector
-#include <random>  // for std::random_device, std::mt19937
+#include <iomanip>
+#include <vector>
+#include <random>
 
 using namespace std;
 
 int main() 
 {
-    // === Load daily return data from CSV ===
     ifstream fin("stocks_with_DailyReturns.csv");
     if (!fin.is_open()) 
     {
@@ -29,7 +28,6 @@ int main()
         return 1;
     }
     
-    // === Dynamically determine the number of stocks ===
     stringstream ss_header(header_line);
     string token;
     int total_columns = 0;
@@ -38,7 +36,6 @@ int main()
         total_columns++;
     }
 
-    // The formula: (Total Columns - 1 for Date) / 2 (for prices and returns)
     if (total_columns <= 1 || (total_columns - 1) % 2 != 0) {
         cerr << "Error: Invalid CSV format. Expected Date column, N price columns, and N return columns." << endl;
         return 1;
@@ -46,8 +43,6 @@ int main()
     const int num_stocks = (total_columns - 1) / 2;
     cout << "Detected " << num_stocks << " stocks from the CSV file." << endl;
 
-
-    // === Read the rest of the data ===
     vector<vector<double>> return_data;
     string line;
     while (getline(fin, line)) 
@@ -68,28 +63,26 @@ int main()
         // Read daily return columns using the dynamic count
         for (int i = 0; i < num_stocks; ++i) 
         {
-            if (!getline(ss, cell, ',')) break; // Safety break
+            if (!getline(ss, cell, ',')) break;
             try {
                 row.push_back(stod(cell));
             } catch (...) {
-                row.push_back(nan("")); // Fallback for bad data
+                row.push_back(nan(""));
             }
         }
         
-        // Ensure the row has the correct number of returns before adding
         if(row.size() == num_stocks) {
             return_data.push_back(row);
         }
     }
     fin.close();
 
-    // === Construct matrix and portfolio statistics ===
     Matrix returns(return_data);
-    Matrix cov = returns.covariance_matrix();
+    Portfolio portfolio(returns);
+
     vector<double> mean_returns = returns.mean_per_column();
-    
-    // Check if data was loaded correctly
-    if(mean_returns.empty()){
+
+    if (mean_returns.empty()){
         cerr << "No valid return data was loaded. Exiting." << endl;
         return 1;
     }
@@ -100,16 +93,13 @@ int main()
     const int trading_days = 252;
     const int simulations = 200000;
 
-    // === Random generator ===
     random_device rd;
     mt19937 gen(rd());
 
-    // === Simulation result variables ===
     double best_sharpe = -1e9;
     vector<double> best_weights;
     double best_ret = 0.0, best_risk = 0.0;
 
-    // === Open file to store simulation results ===
     ofstream sim_out("MonteCarloResults.csv");
     if (!sim_out.is_open()) 
     {
@@ -117,7 +107,6 @@ int main()
         return 1;
     }
 
-    // === Write CSV header ===
     sim_out << "Return,Risk,Sharpe";
     for (size_t i = 0; i < mean_returns.size(); ++i)
         sim_out << ",W" << i;
@@ -127,8 +116,8 @@ int main()
     for (int i = 0; i < simulations; ++i) 
     {
         vector<double> weights = random_weights(mean_returns.size(), gen);
-        double port_ret = dot_product(weights, mean_returns);
-        double port_var = portfolio_variance(weights, cov);
+        double port_ret = portfolio.portfolio_return(weights);
+        double port_var = portfolio.portfolio_variance(weights);
         double port_std = sqrt(port_var);
 
         double annual_ret = port_ret * trading_days;
